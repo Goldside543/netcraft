@@ -2,10 +2,14 @@ package netcraft;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
+import com.jme3.audio.AudioData.DataType;
+import com.jme3.audio.AudioNode;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -13,15 +17,19 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
-import com.jme3.texture.Texture;
-import com.jme3.audio.AudioNode;
-import com.jme3.audio.AudioData.DataType;
 import com.jme3.scene.shape.Sphere;
+import com.jme3.ui.Picture;
+import com.jme3.ui.Text;
+import com.jme3.util.TangentBinormalGenerator;
 
 public class Netcraft extends SimpleApplication {
 
     private Geometry player;
     private AudioNode backgroundMusic;
+    private Node playerNode;
+    private Node levelNode;
+    private boolean isPaused = false;
+    private Text hudText;
 
     public static void main(String[] args) {
         Netcraft app = new Netcraft();
@@ -31,33 +39,36 @@ public class Netcraft extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        // Create a box and a sphere
+        // Initialize player and level nodes
+        playerNode = new Node("PlayerNode");
+        levelNode = new Node("LevelNode");
+        
+        // Create game objects
         createBox();
         createSphere();
+        createLighting();
+        createHUD();
 
         // Set up input handling
         setupInput();
 
         // Play background music
         playBackgroundMusic();
+
+        // Set the camera
+        setCamera();
     }
 
     private void createBox() {
         Box boxShape = new Box(1, 1, 1);
         Geometry boxGeom = new Geometry("Box", boxShape);
 
-        // Load the texture from the assets directory
-        Texture texture = assetManager.loadTexture("Materials/cyberground.jpg");
-        
-        // Create a new material and set the texture
         Material boxMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        boxMat.setTexture("ColorMap", texture);
-        
-        // Apply the material to the geometry
+        boxMat.setColor("Color", ColorRGBA.Blue);
         boxGeom.setMaterial(boxMat);
 
-        // Attach the geometry to the root node
-        rootNode.attachChild(boxGeom);
+        levelNode.attachChild(boxGeom);
+        rootNode.attachChild(levelNode);
     }
 
     private void createSphere() {
@@ -69,7 +80,37 @@ public class Netcraft extends SimpleApplication {
         sphereGeom.setMaterial(sphereMat);
         sphereGeom.setLocalTranslation(3, 0, 0);
 
-        rootNode.attachChild(sphereGeom);
+        levelNode.attachChild(sphereGeom);
+    }
+
+    private void createLighting() {
+        // Directional light
+        DirectionalLight sun = new DirectionalLight();
+        sun.setDirection(new Vector3f(-1, -1, -1).normalizeLocal());
+        sun.setColor(ColorRGBA.White);
+        rootNode.addLight(sun);
+
+        // Point light
+        PointLight pointLight = new PointLight();
+        pointLight.setPosition(new Vector3f(2, 2, 2));
+        pointLight.setColor(ColorRGBA.Yellow);
+        rootNode.addLight(pointLight);
+    }
+
+    private void createHUD() {
+        guiNode.detachAllChildren();
+
+        hudText = new Text("HUD", "Welcome to Netcraft!");
+        hudText.setLocalTranslation(300, 400, 0);
+        guiNode.attachChild(hudText);
+
+        // Example of adding a picture to the HUD
+        Picture logo = new Picture("HUD Picture");
+        logo.setImage(assetManager, "Textures/Logo.png", true);
+        logo.setWidth(128);
+        logo.setHeight(128);
+        logo.setLocalTranslation(10, 10, 0);
+        guiNode.attachChild(logo);
     }
 
     private void setupInput() {
@@ -78,23 +119,36 @@ public class Netcraft extends SimpleApplication {
         inputManager.addMapping("Move Backward", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("Move Left", new KeyTrigger(KeyInput.KEY_A));
         inputManager.addMapping("Move Right", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addListener(actionListener, "Move Forward", "Move Backward", "Move Left", "Move Right");
+        inputManager.addMapping("Pause", new KeyTrigger(KeyInput.KEY_P));
+        inputManager.addListener(actionListener, "Move Forward", "Move Backward", "Move Left", "Move Right", "Pause");
     }
 
     private ActionListener actionListener = new ActionListener() {
         @Override
         public void onAction(String name, boolean isPressed, float tpf) {
             if (name.equals("Move Forward") && isPressed) {
-                player.move(0, 0, -0.1f);
+                playerNode.move(0, 0, -0.1f);
             } else if (name.equals("Move Backward") && isPressed) {
-                player.move(0, 0, 0.1f);
+                playerNode.move(0, 0, 0.1f);
             } else if (name.equals("Move Left") && isPressed) {
-                player.move(-0.1f, 0, 0);
+                playerNode.move(-0.1f, 0, 0);
             } else if (name.equals("Move Right") && isPressed) {
-                player.move(0.1f, 0, 0);
+                playerNode.move(0.1f, 0, 0);
+            } else if (name.equals("Pause") && isPressed) {
+                isPaused = !isPaused;
+                if (isPaused) {
+                    setPauseOn();
+                } else {
+                    setPauseOff();
+                }
             }
         }
     };
+
+    private void setCamera() {
+        cam.setLocation(new Vector3f(0, 5, 10));
+        cam.lookAt(new Vector3f(0, 0, 0), Vector3f.UNIT_Y);
+    }
 
     private void playBackgroundMusic() {
         backgroundMusic = new AudioNode(assetManager, "Sounds/BackgroundMusic.ogg", DataType.Stream);
@@ -104,13 +158,25 @@ public class Netcraft extends SimpleApplication {
         backgroundMusic.play();
     }
 
+    private void setPauseOn() {
+        getInputManager().setCursorVisible(true);
+        System.out.println("Game paused");
+    }
+
+    private void setPauseOff() {
+        getInputManager().setCursorVisible(false);
+        System.out.println("Game resumed");
+    }
+
     @Override
     public void simpleUpdate(float tpf) {
-        // This method is called every frame and can be used to update game state
+        if (!isPaused) {
+            // Update game state here
+        }
     }
 
     @Override
     public void simpleRender(RenderManager rm) {
-        // This method is called during rendering to perform additional rendering tasks
+        // Render additional effects or debug information
     }
 }
