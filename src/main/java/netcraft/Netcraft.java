@@ -19,7 +19,6 @@ import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.ui.Picture;
-import com.jme3.ui.Text;
 import com.jme3.util.TangentBinormalGenerator;
 
 public class Netcraft extends SimpleApplication {
