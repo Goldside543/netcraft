@@ -28,8 +28,7 @@ public class Netcraft extends SimpleApplication {
     private Node playerNode;
     private Node levelNode;
     private boolean isPaused = false;
-    private Text hudText;
-
+    
     public static void main(String[] args) {
         Netcraft app = new Netcraft();
         app.setShowSettings(false);
