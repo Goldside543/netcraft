@@ -55,13 +55,13 @@ public class Netcraft extends SimpleApplication {
         // Set the camera
         setCamera();
     }
-
+    
     private void createBox() {
         Box boxShape = new Box(1, 1, 1);
         Geometry boxGeom = new Geometry("Box", boxShape);
 
         Material boxMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        boxMat.setColor("Color", ColorRGBA.Blue);
+        boxMat.setTexture("ColorMap", assetManager.loadTexture("Materials/cyberground.jpg"));
         boxGeom.setMaterial(boxMat);
 
         levelNode.attachChild(boxGeom);
