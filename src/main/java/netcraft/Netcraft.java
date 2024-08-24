@@ -47,8 +47,7 @@ public class Netcraft extends SimpleApplication {
         createBox();
         createSphere();
         createLighting();
-        createHUD();
-
+    
         // Set up input handling
         setupInput();
 
@@ -95,22 +94,6 @@ public class Netcraft extends SimpleApplication {
         pointLight.setPosition(new Vector3f(2, 2, 2));
         pointLight.setColor(ColorRGBA.Yellow);
         rootNode.addLight(pointLight);
-    }
-
-    private void createHUD() {
-        guiNode.detachAllChildren();
-
-        hudText = new Text("HUD", "Welcome to Netcraft!");
-        hudText.setLocalTranslation(300, 400, 0);
-        guiNode.attachChild(hudText);
-
-        // Example of adding a picture to the HUD
-        Picture logo = new Picture("HUD Picture");
-        logo.setImage(assetManager, "Textures/Logo.png", true);
-        logo.setWidth(128);
-        logo.setHeight(128);
-        logo.setLocalTranslation(10, 10, 0);
-        guiNode.attachChild(logo);
     }
 
     private void setupInput() {
