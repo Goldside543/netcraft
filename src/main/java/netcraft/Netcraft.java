@@ -13,9 +13,10 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Sphere;
+import com.jme3.texture.Texture;
 import com.jme3.audio.AudioNode;
 import com.jme3.audio.AudioData.DataType;
+import com.jme3.scene.shape.Sphere;
 
 public class Netcraft extends SimpleApplication {
 
@@ -45,10 +46,17 @@ public class Netcraft extends SimpleApplication {
         Box boxShape = new Box(1, 1, 1);
         Geometry boxGeom = new Geometry("Box", boxShape);
 
+        // Load the texture from the assets directory
+        Texture texture = assetManager.loadTexture("Materials/cyberground.jpg");
+        
+        // Create a new material and set the texture
         Material boxMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        boxMat.setColor("Color", ColorRGBA.Blue);
+        boxMat.setTexture("ColorMap", texture);
+        
+        // Apply the material to the geometry
         boxGeom.setMaterial(boxMat);
 
+        // Attach the geometry to the root node
         rootNode.attachChild(boxGeom);
     }
 
